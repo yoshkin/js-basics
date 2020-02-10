@@ -10,6 +10,10 @@ function bind(context, fn){
         fn.apply(context, args)
     }
 }
+// same bind
+function bind2(context, fn){
+  return fn.apply(context, arguments);
+}
 
 // bind(pers1, logPerson)()
 // bind(pers2, logPerson)()
