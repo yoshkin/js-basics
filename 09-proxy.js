@@ -154,3 +154,43 @@ const IndexedArray = new Proxy(Array, {
 })
 
 const users = new IndexedArray(userData)
+
+
+const camelcase = require('camelcase')
+const prefix = 'findWhere'
+const assertions = {
+  Equals: (object, value) => object === value,
+  IsNull: (object, value) => object === null,
+  IsUndefined: (object, value) => object === undefined,
+  IsEmpty: (object, value) => object.length === 0,
+  Includes: (object, value) => object.includes(value),
+  IsLowerThan: (object, value) => object === value,
+  IsGreaterThan: (object, value) => object === value
+}
+const assertionNames = Object.keys(assertions)
+const wrap = arr => {
+  return new Proxy(arr, {
+    get(target, propKey) {
+      if (propKey in target) return target[propKey]
+      const assertionName = assertionNames.find(assertion =>
+        propKey.endsWith(assertion))
+      if (propKey.startsWith(prefix)) {
+        const field = camelcase(
+          propKey.substring(prefix.length,
+            propKey.length - assertionName.length)
+        )
+        const assertion = assertions[assertionName]
+        return value => {
+          return target.find(item => assertion(item[field], value))
+        }
+      }
+    }
+  })
+}
+const arr = wrap([
+  { name: 'John', age: 23, skills: ['mongodb'] },
+  { name: 'Lily', age: 21, skills: ['redis'] },
+  { name: 'Iris', age: 43, skills: ['python', 'javascript'] }
+])
+console.log(arr.findWhereNameEquals('Lily')) // находит Lily
+console.log(arr.findWhereSkillsIncludes('javascript')) // находит Iris
